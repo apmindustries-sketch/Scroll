@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>APM Cinematic Scroll</title>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    html,
+    body{
+
+      width:100%;
+      height:100%;
+
+      background:black;
+
+      overflow-x:hidden;
+    }
+
+    body{
+
+      height:600vh;
+    }
+
+    canvas{
+
+      position:fixed;
+
+      top:0;
+      left:0;
+
+      width:100vw;
+      height:100vh;
+
+      background:black;
+
+      display:block;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <canvas id="canvas"></canvas>
+
+  <script>
+
+    // TOTAL FRAMES
+
+    const frameCount = 192;
+
+    // FRAME PATH
+
+    const currentFrame = (index) => {
+
+      return `Frames/ezgif-frame-${String(index + 1).padStart(3, '0')}.jpg`;
+
+    };
+
+    // PRELOAD IMAGES
+
+    const images = [];
+
+    for(let i = 0; i < frameCount; i++){
+
+      const img = new Image();
+
+      img.src = currentFrame(i);
+
+      images.push(img);
+
+    }
+
+    // CANVAS
+
+    const canvas =
+      document.getElementById("canvas");
+
+    const context =
+      canvas.getContext("2d");
+
+    // FULLSCREEN CANVAS
+
+    function resizeCanvas(){
+
+      canvas.width =
+        window.innerWidth;
+
+      canvas.height =
+        window.innerHeight;
+
+    }
+
+    resizeCanvas();
+
+    // PERFECT FULLSCREEN IMAGE FIT
+
+    function drawImageScaled(img){
+
+      const hRatio =
+        canvas.width / img.width;
+
+      const vRatio =
+        canvas.height / img.height;
+
+      const ratio =
+        Math.max(hRatio, vRatio);
+
+      const centerShiftX =
+        (canvas.width - img.width * ratio) / 2;
+
+      const centerShiftY =
+        (canvas.height - img.height * ratio) / 2;
+
+      context.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+
+      context.drawImage(
+        img,
+        0,
+        0,
+        img.width,
+        img.height,
+        centerShiftX,
+        centerShiftY,
+        img.width * ratio,
+        img.height * ratio
+      );
+    }
+
+    // FIRST FRAME
+
+    images[0].onload = () => {
+
+      drawImageScaled(images[0]);
+
+    };
+
+    // SCROLL VARIABLES
+
+    let targetFrame = 0;
+
+    let currentFrameIndex = 0;
+
+    // SCROLL TRACKING
+
+    window.addEventListener(
+      "scroll",
+      () => {
+
+        const scrollTop =
+          window.scrollY;
+
+        const maxScroll =
+          document.body.scrollHeight -
+          window.innerHeight;
+
+        const scrollFraction =
+          scrollTop / maxScroll;
+
+        targetFrame =
+          scrollFraction *
+          (frameCount - 1);
+
+      }
+    );
+
+    // ULTRA SMOOTH ANIMATION
+
+    function animate(){
+
+      currentFrameIndex +=
+        (targetFrame - currentFrameIndex)
+        * 0.05;
+
+      const frameIndex =
+        Math.round(currentFrameIndex);
+
+      const img =
+        images[frameIndex];
+
+      if(img && img.complete){
+
+        drawImageScaled(img);
+
+      }
+
+      requestAnimationFrame(
+        animate
+      );
+
+    }
+
+    animate();
+
+    // RESPONSIVE RESIZE
+
+    window.addEventListener(
+      "resize",
+      () => {
+
+        resizeCanvas();
+
+      }
+    );
+
+  </script>
+
+</body>
+
+</html>
